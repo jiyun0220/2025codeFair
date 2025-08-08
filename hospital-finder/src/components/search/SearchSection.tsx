@@ -3,7 +3,6 @@
 import styled from '@emotion/styled';
 import { useHospitalStore } from '@/store/useHospitalStore';
 import SearchIcon from '@/components/icons/SearchIcon';
-import FilterIcon from '@/components/icons/FilterIcon';
 import ListIcon from '@/components/icons/ListIcon';
 import MapIcon from '@/components/icons/MapIcon';
 import { fetchEmergencyByCoordinate, fetchEmergencyByRegion } from '@/api/emergency';
@@ -16,21 +15,26 @@ const SearchSection = () => {
     setSearchQuery,
     setResults,
     setIsLoading,
-    setError
+    setError,
+    setUserLocation,
+    setSelectedHospital
   } = useHospitalStore();
 
-  const searchByRegion = async () => {
-    // Expect input like: "경상남도 양산시" (two words)
+  const parseRegion = (searchQuery: string) => {
     const [stage1, stage2] = searchQuery.trim().split(/\s+/);
-    if (!stage1 || !stage2) {
-      setError('예: "경상남도 양산시" 형식으로 입력해주세요');
-      return;
-    }
+    return [stage1, stage2];
+  };
+
+  const searchByRegion = async () => {
+    const [stage1, stage2] = parseRegion(searchQuery);
+    if (!stage1) return;
     setIsLoading(true);
     setError(null);
+    setSelectedHospital(null);
+    setViewMode('list');
     try {
       const data = await fetchEmergencyByRegion({ stage1, stage2, wideSearch: true, pageNumber: 1 });
-      setResults(data.data.rooms || []);
+      setResults((data.data.rooms || []).filter(Boolean));
     } catch (e: any) {
       setError(e?.message || '검색 중 오류가 발생했습니다');
     } finally {
@@ -39,17 +43,21 @@ const SearchSection = () => {
   };
 
   const searchByCurrentLocation = async () => {
-    if (!navigator.geolocation) {
-      setError('브라우저에서 위치 정보를 지원하지 않습니다');
-      return;
-    }
     setIsLoading(true);
     setError(null);
+    setSelectedHospital(null);
+    setViewMode('list');
+    if (!navigator.geolocation) {
+      setError('브라우저에서 위치 정보를 지원하지 않습니다');
+      setIsLoading(false);
+      return;
+    }
     navigator.geolocation.getCurrentPosition(async (pos) => {
       try {
         const { latitude, longitude } = pos.coords;
+        setUserLocation({ latitude, longitude });
         const data = await fetchEmergencyByCoordinate({ latitude, longitude, wideSearch: true, pageNumber: 1 });
-        setResults(data.data.rooms || []);
+        setResults((data.data.rooms || []).filter(Boolean));
       } catch (e: any) {
         setError(e?.message || '위치 기반 검색 중 오류가 발생했습니다');
       } finally {
@@ -65,7 +73,7 @@ const SearchSection = () => {
     <Container>
       <SearchBar>
         <SearchInput
-          placeholder="병원, 증상, 진료과목으로 검색"
+          placeholder="병원명 또는 지역을 검색하세요"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
@@ -77,10 +85,7 @@ const SearchSection = () => {
         <GeoButton onClick={searchByCurrentLocation}>내 주변 응급실 찾기</GeoButton>
       </GeoRow>
       <Filters>
-        <FilterButton>
-          <FilterIcon />
-          <span>필터</span>
-        </FilterButton>
+        <div />
         <ViewToggle>
           <ToggleButton
             className={viewMode === 'list' ? 'active' : ''}
@@ -105,17 +110,17 @@ const SearchSection = () => {
 const Container = styled.div`
   background: white;
   padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  margin-bottom: 20px;
+  border-radius: 0;
+  box-shadow: none;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 16px;
 `;
 
 const SearchBar = styled.div`
   display: flex;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  overflow: hidden;
-  margin-bottom: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 0;
+  margin-bottom: 12px;
 `;
 
 const SearchInput = styled.input`
@@ -127,15 +132,12 @@ const SearchInput = styled.input`
 `;
 
 const SearchButton = styled.button`
-  background: #e53e3e;
-  color: white;
-  border: none;
+  background: #e03a3a;
+  color: #fff;
+  border: 1px solid #dc2626;
   padding: 0 16px;
   cursor: pointer;
-
-  &:hover {
-    background: #c53030;
-  }
+  border-radius: 0;
 `;
 
 const GeoRow = styled.div`
@@ -145,14 +147,13 @@ const GeoRow = styled.div`
 `;
 
 const GeoButton = styled.button`
-  background: #edf2f7;
-  color: #1a202c;
-  border: 1px solid #cbd5e0;
-  border-radius: 8px;
+  background: #f4f4f5;
+  color: #1f2937;
+  border: 1px solid #e5e7eb;
+  border-radius: 0;
   padding: 8px 12px;
   font-size: 14px;
   cursor: pointer;
-  &:hover { background: #e2e8f0; }
 `;
 
 const Filters = styled.div`
@@ -161,27 +162,11 @@ const Filters = styled.div`
   align-items: center;
 `;
 
-const FilterButton = styled.button`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #f0f0f0;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 14px;
-  cursor: pointer;
-
-  &:hover {
-    background: #e0e0e0;
-  }
-`;
 
 const ViewToggle = styled.div`
   display: flex;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  border-radius: 0;
 `;
 
 const ToggleButton = styled.button`
@@ -194,12 +179,12 @@ const ToggleButton = styled.button`
   cursor: pointer;
 
   &.active {
-    background: #e53e3e;
-    color: white;
+    background: #e03a3a;
+    color: #fff;
   }
 
   &:not(.active):hover {
-    background: #f0f0f0;
+    background: #f3f4f6;
   }
 `;
 

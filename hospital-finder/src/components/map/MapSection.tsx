@@ -12,12 +12,12 @@ import type { HospitalRoom } from '@/types/emergency';
 const MapSection = () => {
   const { loaded, error } = useKakaoLoader();
   const mapRef = useRef<HTMLDivElement | null>(null);
-  const { selectedHospital, results } = useHospitalStore();
+  const { selectedHospital, results, userLocation, setSelectedHospital, setViewMode } = useHospitalStore();
 
   useEffect(() => {
     if (!loaded || !mapRef.current) return;
     // Determine center: selected hospital or first result with coordinates, fallback to Seoul City Hall
-    const center = getCenter(selectedHospital, results);
+    const center = getCenter(selectedHospital, results, userLocation);
     // @ts-ignore kakao global
     const map = new kakao.maps.Map(mapRef.current, {
       center: new kakao.maps.LatLng(center.lat, center.lng),
@@ -27,6 +27,9 @@ const MapSection = () => {
     // Add marker for selected or list items that have coordinates
     const markers: any[] = [];
     const items: HospitalRoom[] = selectedHospital ? [selectedHospital] : (results || []);
+    // Create a single InfoWindow instance we can reuse
+    // @ts-ignore
+    const infoWindow = new kakao.maps.InfoWindow({ zIndex: 2 });
     items.forEach((h) => {
       if (h.latitude && h.longitude) {
         // @ts-ignore
@@ -35,6 +38,16 @@ const MapSection = () => {
           position: new kakao.maps.LatLng(h.latitude, h.longitude),
           map,
         });
+        // @ts-ignore
+        kakao.maps.event.addListener(marker, 'click', () => {
+          setSelectedHospital(h);
+          setViewMode('map');
+          // Open info window with hospital name
+          // @ts-ignore
+          infoWindow.setContent(`<div style="padding:6px 10px;white-space:nowrap;">${h.institution_name}</div>`);
+          // @ts-ignore
+          infoWindow.open(map, marker);
+        });
         markers.push(marker);
       }
     });
@@ -42,7 +55,9 @@ const MapSection = () => {
     return () => {
       markers.forEach((m) => m.setMap(null));
     };
-  }, [loaded, selectedHospital, results]);
+  }, [loaded, selectedHospital, results, userLocation, setSelectedHospital, setViewMode]);
+
+  // Note: we avoid re-instantiating a Map on the same container to prevent Kakao internal errors
 
   return (
     <MapContainer>
@@ -59,7 +74,7 @@ const MapContainer = styled.div`
   height: 100%;
   min-height: 500px; /* Ensure a minimum height */
   background: #e0e0e0;
-  border-radius: 8px;
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -72,12 +87,17 @@ const MapPlaceholder = styled.div`
 
 export default MapSection;
 
-function getCenter(selected: HospitalRoom | null, list?: HospitalRoom[]) {
+function getCenter(
+  selected: HospitalRoom | null,
+  list?: HospitalRoom[],
+  userLoc?: { latitude: number; longitude: number } | null,
+) {
   if (selected?.latitude && selected?.longitude) {
     return { lat: selected.latitude, lng: selected.longitude };
   }
   const first = list?.find((x) => x.latitude && x.longitude);
   if (first) return { lat: first.latitude as number, lng: first.longitude as number };
+  if (userLoc) return { lat: userLoc.latitude, lng: userLoc.longitude };
   // Fallback: Seoul City Hall
   return { lat: 37.5662952, lng: 126.9779451 };
 }

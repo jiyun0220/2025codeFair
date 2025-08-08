@@ -7,45 +7,51 @@ import { useHospitalStore } from '@/store/useHospitalStore';
 interface Props { hospital: HospitalRoom }
 
 const HospitalCard = ({ hospital }: Props) => {
-  const { setSelectedHospital, setViewMode } = useHospitalStore();
+  const { setSelectedHospital, setViewMode, userLocation, openDetail } = useHospitalStore();
   const address = `${hospital.provinces} ${hospital.municipalities}`;
-  const openLabel = hospital.available_emergency_room_count > 0 ? '여유 있음' : '혼잡';
-  const openClass = hospital.available_emergency_room_count > 0 ? 'open' : 'closed';
+  const distKm = userLocation && hospital.latitude && hospital.longitude
+    ? haversine(userLocation.latitude, userLocation.longitude, hospital.latitude, hospital.longitude)
+    : null;
   return (
-    <Card onClick={() => { setSelectedHospital(hospital); setViewMode('map'); }}>
+    <Card role="button" tabIndex={0} onClick={() => { setSelectedHospital(hospital); setViewMode('map'); }}>
       <Info>
         <Name>{hospital.institution_name}</Name>
         <Address>{address}</Address>
-        <Distance>응급실 여유: {hospital.available_emergency_room_count}개</Distance>
+        {distKm !== null && (
+          <Distance>{distKm.toFixed(1)} km</Distance>
+        )}
       </Info>
       <Status>
-        <OpeningHours className={openClass}>{openLabel}</OpeningHours>
+        <Counts>
+          응급실 {hospital.available_emergency_room_count ?? '-'} / 수술실 {hospital.available_surgery_room_count ?? '-'} / 병상 {hospital.available_hospital_room_count ?? '-'}
+        </Counts>
         <Tags>
           {hospital.isAvailableCT === 'Y' && <Tag>#CT</Tag>}
           {hospital.isAvailableMRI === 'Y' && <Tag>#MRI</Tag>}
           {hospital.isAvailableAmbulance === 'Y' && <Tag>#구급차</Tag>}
         </Tags>
+        <Actions>
+          {hospital.emergency_tel && (
+            <ActionLink href={`tel:${hospital.emergency_tel}`} onClick={(e) => e.stopPropagation()}>전화</ActionLink>
+          )}
+          <ActionButton onClick={(e) => { e.stopPropagation(); setSelectedHospital(hospital); openDetail(); }}>자세히</ActionButton>
+        </Actions>
       </Status>
     </Card>
   );
 };
 
-const Card = styled.button`
-  background: white;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+const Card = styled.div`
+  background: #fff;
+  border-radius: 0;
+  padding: 16px;
+  box-shadow: none;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  transition: box-shadow 0.2s ease-in-out;
-  border: none;
+  border: 1px solid #e5e7eb;
   text-align: left;
   cursor: pointer;
-
-  &:hover {
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  }
 `;
 
 const Info = styled.div`
@@ -80,22 +86,12 @@ const Status = styled.div`
   gap: 8px;
 `;
 
-const OpeningHours = styled.span`
-  font-size: 14px;
-  font-weight: 600;
-  padding: 4px 8px;
-  border-radius: 4px;
-
-  &.open {
-    color: #38a169;
-    background-color: #f0fff4;
-  }
-
-  &.closed {
-    color: #e53e3e;
-    background-color: #fff5f5;
-  }
+const Counts = styled.div`
+  font-size: 13px;
+  color: #374151;
 `;
+
+// Availability label removed due to unreliable data
 
 const Tags = styled.div`
   display: flex;
@@ -103,11 +99,47 @@ const Tags = styled.div`
 `;
 
 const Tag = styled.span`
-  background-color: #edf2f7;
-  color: #4a5568;
+  background-color: #f3f4f6;
+  color: #374151;
   font-size: 12px;
-  padding: 4px 8px;
-  border-radius: 12px;
+  padding: 2px 6px;
+  border-radius: 0;
+`;
+
+const Actions = styled.div`
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+`;
+
+const ActionLink = styled.a`
+  background: #e03a3a;
+  border: 1px solid #dc2626;
+  color: #fff;
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 0;
+  text-decoration: none;
+`;
+
+const ActionButton = styled.button`
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  color: #374151;
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 0;
+  cursor: pointer;
 `;
 
 export default HospitalCard;
+
+function haversine(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const R = 6371; // km
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}

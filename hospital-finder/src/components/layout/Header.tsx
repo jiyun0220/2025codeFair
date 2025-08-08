@@ -1,7 +1,6 @@
 'use client';
 
 import styled from '@emotion/styled';
-import LocationIcon from '@/components/icons/LocationIcon';
 
 const Header = () => {
   return (
@@ -10,11 +9,6 @@ const Header = () => {
         <LogoIcon>+</LogoIcon>
         <LogoText>사이트 이름</LogoText>
       </Logo>
-      <Location>
-        <LocationIcon />
-        <span>서울특별시 강남구</span>
-        <span>위치 변경 ▾</span>
-      </Location>
     </HeaderContainer>
   );
 };
@@ -57,12 +51,6 @@ const LogoText = styled.span`
   color: #333;
 `;
 
-const Location = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #666;
-  font-size: 14px;
-`;
+// Location block removed (dummy content)
 
 export default Header;

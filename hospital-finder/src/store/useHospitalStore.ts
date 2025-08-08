@@ -11,6 +11,8 @@ interface HospitalState {
   selectedHospital: HospitalRoom | null;
   isLoading: boolean;
   error: string | null;
+  userLocation: { latitude: number; longitude: number } | null;
+  isDetailOpen: boolean;
   
   setViewMode: (mode: ViewMode) => void;
   setSearchQuery: (query: string) => void;
@@ -18,6 +20,9 @@ interface HospitalState {
   setSelectedHospital: (h: HospitalRoom | null) => void;
   setIsLoading: (v: boolean) => void;
   setError: (msg: string | null) => void;
+  setUserLocation: (coords: { latitude: number; longitude: number } | null) => void;
+  openDetail: () => void;
+  closeDetail: () => void;
 }
 
 export const useHospitalStore = create<HospitalState>((set) => ({
@@ -27,6 +32,8 @@ export const useHospitalStore = create<HospitalState>((set) => ({
   selectedHospital: null,
   isLoading: false,
   error: null,
+  userLocation: null,
+  isDetailOpen: false,
 
   setViewMode: (mode) => set({ viewMode: mode }),
   setSearchQuery: (query) => set({ searchQuery: query }),
@@ -34,4 +41,7 @@ export const useHospitalStore = create<HospitalState>((set) => ({
   setSelectedHospital: (h) => set({ selectedHospital: h }),
   setIsLoading: (v) => set({ isLoading: v }),
   setError: (msg) => set({ error: msg }),
+  setUserLocation: (coords) => set({ userLocation: coords }),
+  openDetail: () => set({ isDetailOpen: true }),
+  closeDetail: () => set({ isDetailOpen: false }),
 }));
