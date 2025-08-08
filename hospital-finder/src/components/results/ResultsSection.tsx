@@ -2,15 +2,19 @@
 
 import styled from '@emotion/styled';
 import HospitalCard from './HospitalCard';
+import { useHospitalStore } from '@/store/useHospitalStore';
 
 const ResultsSection = () => {
+  const { results, isLoading, error } = useHospitalStore();
   return (
     <Container>
       <Title>검색 결과</Title>
+      {isLoading && <InfoText>불러오는 중...</InfoText>}
+      {error && <InfoText style={{ color: '#e53e3e' }}>{error}</InfoText>}
       <ResultsList>
-        <HospitalCard />
-        <HospitalCard />
-        <HospitalCard />
+        {results.map((h) => (
+          <HospitalCard key={h.hospitalId} hospital={h} />
+        ))}
       </ResultsList>
     </Container>
   );
@@ -35,3 +39,8 @@ const ResultsList = styled.div`
 `;
 
 export default ResultsSection;
+
+const InfoText = styled.p`
+  margin: 0;
+  color: #666;
+`;

@@ -1,28 +1,36 @@
 'use client';
 
 import styled from '@emotion/styled';
+import type { HospitalRoom } from '@/types/emergency';
+import { useHospitalStore } from '@/store/useHospitalStore';
 
-const HospitalCard = () => {
+interface Props { hospital: HospitalRoom }
+
+const HospitalCard = ({ hospital }: Props) => {
+  const { setSelectedHospital, setViewMode } = useHospitalStore();
+  const address = `${hospital.provinces} ${hospital.municipalities}`;
+  const openLabel = hospital.available_emergency_room_count > 0 ? '여유 있음' : '혼잡';
+  const openClass = hospital.available_emergency_room_count > 0 ? 'open' : 'closed';
   return (
-    <Card>
+    <Card onClick={() => { setSelectedHospital(hospital); setViewMode('map'); }}>
       <Info>
-        <Name>서울삼성병원</Name>
-        <Address>서울시 강남구 삼성로 123</Address>
-        <Distance>500m</Distance>
+        <Name>{hospital.institution_name}</Name>
+        <Address>{address}</Address>
+        <Distance>응급실 여유: {hospital.available_emergency_room_count}개</Distance>
       </Info>
       <Status>
-        <OpeningHours className="open">진료중</OpeningHours>
+        <OpeningHours className={openClass}>{openLabel}</OpeningHours>
         <Tags>
-          <Tag>#소아과</Tag>
-          <Tag>#내과</Tag>
-          <Tag>#야간진료</Tag>
+          {hospital.isAvailableCT === 'Y' && <Tag>#CT</Tag>}
+          {hospital.isAvailableMRI === 'Y' && <Tag>#MRI</Tag>}
+          {hospital.isAvailableAmbulance === 'Y' && <Tag>#구급차</Tag>}
         </Tags>
       </Status>
     </Card>
   );
 };
 
-const Card = styled.div`
+const Card = styled.button`
   background: white;
   border-radius: 8px;
   padding: 20px;
@@ -31,6 +39,9 @@ const Card = styled.div`
   justify-content: space-between;
   align-items: center;
   transition: box-shadow 0.2s ease-in-out;
+  border: none;
+  text-align: left;
+  cursor: pointer;
 
   &:hover {
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);

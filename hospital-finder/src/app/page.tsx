@@ -15,7 +15,7 @@ export default function Home() {
       <Main viewMode={viewMode}>
         <div>
           <SearchSection />
-          {viewMode === 'list' && <ResultsSection />}
+          <ResultsSection />
         </div>
         {viewMode === 'map' && <MapSection />}
       </Main>
@@ -29,7 +29,7 @@ const Main = styled.main<{ viewMode: 'list' | 'map' }>`
   padding: 20px;
   display: grid;
   grid-template-columns: ${({ viewMode }) =>
-    viewMode === 'map' ? '1fr 400px' : '1fr'};
+    viewMode === 'map' ? '1fr 420px' : '1fr'};
   gap: 20px;
 
   @media (max-width: 768px) {
