@@ -6,6 +6,7 @@ import SearchSection from '@/components/search/SearchSection';
 import ResultsSection from '@/components/results/ResultsSection';
 import MapSection from '@/components/map/MapSection';
 import { useHospitalStore } from '@/store/useHospitalStore';
+import ChatWidget from '@/components/chat/ChatWidget';
 
 export default function Home() {
   const { viewMode } = useHospitalStore();
@@ -19,6 +20,7 @@ export default function Home() {
         </div>
         {viewMode === 'map' && <MapSection />}
       </Main>
+      <ChatWidget />
     </>
   );
 }
