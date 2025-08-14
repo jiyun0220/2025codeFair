@@ -95,6 +95,8 @@ const Panel = styled.div`
   border: 1px solid #e5e7eb;
   display: flex;
   flex-direction: column;
+  border-radius: 10px;
+  overflow: hidden;
 `;
 
 const Header = styled.div`
@@ -108,7 +110,7 @@ const Header = styled.div`
     border: 1px solid #e5e7eb;
     background: #f3f4f6;
     padding: 4px 8px;
-    border-radius: 0;
+    border-radius: 6px;
     cursor: pointer;
   }
 `;
@@ -143,6 +145,7 @@ const Input = styled.input`
   flex: 1;
   border: 1px solid #e5e7eb;
   padding: 8px 10px;
+  border-radius: 6px;
 `;
 
 const Send = styled.button`
@@ -151,4 +154,5 @@ const Send = styled.button`
   border: 1px solid #dc2626;
   padding: 8px 12px;
   cursor: pointer;
+  border-radius: 6px;
 `;

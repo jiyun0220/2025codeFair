@@ -87,7 +87,7 @@ const Title = styled.h3`
 const CloseBtn = styled.button`
   border: 1px solid #e5e7eb;
   background: #f3f4f6;
-  border-radius: 0;
+  border-radius: 6px;
   padding: 6px 12px;
   cursor: pointer;
 `;
@@ -118,7 +118,7 @@ const Tag = styled.span`
   color: #374151;
   font-size: 12px;
   padding: 2px 6px;
-  border-radius: 0;
+  border-radius: 6px;
   margin-right: 6px;
 `;
 

@@ -137,7 +137,7 @@ const SearchButton = styled.button`
   border: 1px solid #dc2626;
   padding: 0 16px;
   cursor: pointer;
-  border-radius: 0;
+  border-radius: 6px;
 `;
 
 const GeoRow = styled.div`
@@ -150,7 +150,7 @@ const GeoButton = styled.button`
   background: #f4f4f5;
   color: #1f2937;
   border: 1px solid #e5e7eb;
-  border-radius: 0;
+  border-radius: 6px;
   padding: 8px 12px;
   font-size: 14px;
   cursor: pointer;
@@ -166,7 +166,7 @@ const Filters = styled.div`
 const ViewToggle = styled.div`
   display: flex;
   border: 1px solid #e5e7eb;
-  border-radius: 0;
+  border-radius: 6px;
 `;
 
 const ToggleButton = styled.button`

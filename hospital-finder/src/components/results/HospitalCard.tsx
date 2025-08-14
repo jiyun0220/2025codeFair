@@ -118,7 +118,7 @@ const ActionLink = styled.a`
   color: #fff;
   font-size: 12px;
   padding: 6px 10px;
-  border-radius: 0;
+  border-radius: 6px;
   text-decoration: none;
 `;
 
@@ -128,7 +128,7 @@ const ActionButton = styled.button`
   color: #374151;
   font-size: 12px;
   padding: 6px 10px;
-  border-radius: 0;
+  border-radius: 6px;
   cursor: pointer;
 `;
 
